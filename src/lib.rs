@@ -8,10 +8,14 @@ use rustc_serialize::Decodable;
 
 #[test]
 fn it_works() {
-    let reader = csv::Reader::from_file("./data/movielens.csv").unwrap().delimiter(b' ');
+    let reader = csv::Reader::from_file("./data/movielens.csv")
+        .unwrap().delimiter(b' ');
     let data_handler: BasicDataHandler<usize, usize> = BasicDataHandler::new(reader);
     println!("{:?}", data_handler.get_user_ratings(326));
 }
+
+pub trait Key: Eq + Hash + Decodable + Clone {}
+impl<T> Key for T where T: Eq + Hash + Decodable + Clone {}
 
 pub trait DataHandler<U, I> {
     fn get_user_ids(&self) -> &HashSet<U>;
@@ -25,13 +29,13 @@ pub trait DataHandler<U, I> {
     fn remove_rating(&mut self, user_id: U, item_id: I);
 }
 
-pub struct BasicDataHandler<U: Eq + Hash + Decodable + Clone, I: Eq + Hash + Decodable + Clone> {
+pub struct BasicDataHandler<U: Key, I: Key> {
     user_ids: HashSet<U>,
     item_ids: HashSet<I>,
     ratings: HashMap<(U, I), f64>
 }
 
-impl<U: Eq + Hash + Decodable + Clone, I: Eq + Hash + Decodable + Clone> DataHandler<U, I> for BasicDataHandler<U, I> {
+impl<U: Key, I: Key> DataHandler<U, I> for BasicDataHandler<U, I> {
     fn get_user_ids(&self) -> &HashSet<U> {
         &self.user_ids
     }
@@ -71,12 +75,12 @@ impl<U: Eq + Hash + Decodable + Clone, I: Eq + Hash + Decodable + Clone> DataHan
     }
 }
 
-impl<U: Eq + Hash + Decodable + Clone, I: Eq + Hash + Decodable + Clone> BasicDataHandler<U, I> {
+impl<U: Key, I: Key> BasicDataHandler<U, I> {
     pub fn new(mut reader: csv::Reader<File>) -> BasicDataHandler<U, I> {
         let mut user_ids: HashSet<U> = HashSet::new();
         let mut item_ids: HashSet<I> = HashSet::new();
         let mut ratings: HashMap<(U, I), f64> = HashMap::new();
-            
+
         for row in reader.decode() {
             let (user_id, item_id, rating): (U, I, f64) = row.unwrap();
             user_ids.insert(user_id.clone());
