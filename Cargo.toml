@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["z1mvader <z1mvader@protonmail.com>"]
 
 [dependencies]
+csv = "*"
+rustc-serialize = "*"
