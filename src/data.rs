@@ -1,9 +1,9 @@
 //! Module with basic data loading and handling utilities
 
-use std::fs::File;
 use std::collections::{HashMap, HashSet};
-use csv::Reader;
 use super::ID;
+use csv::Reader;
+use std::fs::File;
 
 /// This trait is based on Mahout's `DataModel` interface.
 /// States the basic functions that a repository containing information about
