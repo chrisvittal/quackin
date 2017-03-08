@@ -1,7 +1,12 @@
 [package]
-name = "oozie"
-version = "0.1.0"
 authors = ["z1mvader <z1mvader@protonmail.com>"]
+description = "Oozie is a recommender systems & machine learning framework written in Rust and inspired on Apache Mahout"
+keywords = ['recommender', 'systems', 'apache', 'mahout']
+license = "MIT"
+name = "oozie"
+readme = "README.md"
+repository = "https://github.com/z1mvader/oozie"
+version = "0.1.0"
 
 [dependencies]
 csv = "0.15.0"

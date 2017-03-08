@@ -1,4 +1,4 @@
-//! Just some functions that implement basic algebraic operations between sparse vectors.
+//! Module with some functions that implement basic algebraic operations between sparse vectors.
 //! Here a sparse vector is just a `HashMap<usize, f64>`
 
 use std::collections::HashMap;

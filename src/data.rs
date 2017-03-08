@@ -1,4 +1,4 @@
-//! Basic data loading and handling utilities
+//! Module with basic data loading and handling utilities
 
 use std::fs::File;
 use std::collections::{HashMap, HashSet};

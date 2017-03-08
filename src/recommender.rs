@@ -1,12 +1,20 @@
+//! Module with the basic tools to build a recommender
+
 use super::data::DataHandler;
 use std::collections::HashMap;
 use super::ID;
 
+
+/// Trait that every recommender must satisfy.
 pub trait Recommender {
+    /// Predicts a rating given an user and an item.
     fn predict(&self, user_id: ID, item_id: ID) -> f64;
+    /// Recommends items given an user. It must returns a vector of
+    /// predicted ratings and item IDs sorted by rating
     fn recommend(&self, user_id: ID) -> Vec<(usize, f64)>;
 }
 
+/// User based nearest neighbors recommender
 pub struct NearestUserRecommender<'a, D: DataHandler + 'a> {
     data_handler: &'a D,
     k: usize,
@@ -14,6 +22,8 @@ pub struct NearestUserRecommender<'a, D: DataHandler + 'a> {
 }
 
 impl<'a, D: DataHandler + 'a> NearestUserRecommender<'a, D> {
+    /// Creates an user based nearest neighbors recommender given a data
+    /// handler, a similarity and the number of neighbors
     pub fn new(data_handler: &D, similarity: fn(&HashMap<usize, f64>, &HashMap<usize, f64>, usize) -> f64, k: usize) -> NearestUserRecommender<D> {
         NearestUserRecommender {
             data_handler: data_handler,
@@ -21,6 +31,8 @@ impl<'a, D: DataHandler + 'a> NearestUserRecommender<'a, D> {
             similarity: similarity
         }
     }
+    /// returns the nearest neighbors for a given user, it requires the number
+    /// of items to compute the similarity
     pub fn get_neighbors(&self, user: HashMap<usize, f64>, n: usize) -> Vec<(f64, HashMap<usize, f64>)> {
         let mut neighbors: Vec<(f64, HashMap<usize, f64>)> =
             self.data_handler.get_user_ids().iter().map(|x|{
@@ -35,6 +47,8 @@ impl<'a, D: DataHandler + 'a> NearestUserRecommender<'a, D> {
 }
 
 impl<'a, D: DataHandler + 'a> Recommender for NearestUserRecommender<'a, D> {
+    /// Predicts the rating for an item by an user. It returns zero if there are
+    /// no neighbors with a similarity greater then zero
     fn predict(&self, user_id: ID, item_id: ID) -> f64 {
         let n = self.data_handler.get_num_items();
         let user = self.data_handler.get_user_ratings(user_id);
@@ -53,6 +67,7 @@ impl<'a, D: DataHandler + 'a> Recommender for NearestUserRecommender<'a, D> {
         }
         0.0
     }
+    /// Returns a vector of item IDs sorted by the predicted rating
     fn recommend(&self, user_id: ID) -> Vec<(usize, f64)>{
         let n = self.data_handler.get_num_items();
         let user = self.data_handler.get_user_ratings(user_id);

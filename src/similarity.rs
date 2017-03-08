@@ -1,4 +1,4 @@
-//! This module contains some basic similarities, you can write your own using the sparse module
+//! Module with some basic similarities, you can write your own using the sparse module
 
 use std::collections::HashMap;
 use super::sparse::*;
