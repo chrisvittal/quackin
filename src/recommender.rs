@@ -73,7 +73,7 @@ impl<'a, D: DataHandler + 'a> Recommender for NearestUserRecommender<'a, D> {
         let user = self.data_handler.get_user_ratings(user_id);
         let neighbors = self.get_neighbors(user.clone(), n);
         let mut ratings: Vec<(usize, f64)> = Vec::with_capacity(n);
-        let items = self.data_handler.get_item_ids().iter().filter(|x| {
+        let items = self.data_handler.get_item_ids().into_iter().filter(|x| {
             !&user.contains_key(&x)
         });
         for item_id in items {
@@ -91,7 +91,7 @@ impl<'a, D: DataHandler + 'a> Recommender for NearestUserRecommender<'a, D> {
             else {
                 rating = 0.0;
             }
-            ratings.push((*item_id, rating));
+            ratings.push((item_id, rating));
         }
         ratings.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
         ratings

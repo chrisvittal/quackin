@@ -10,4 +10,5 @@ version = "0.1.0"
 
 [dependencies]
 csv = "0.15.0"
-
+rusqlite = "0.10.0"
+rand = "0.3.0"
