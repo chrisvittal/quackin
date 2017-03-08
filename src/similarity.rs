@@ -3,9 +3,6 @@
 use std::collections::HashMap;
 use super::sparse::*;
 
-/// Alias for a similarity function, all the functions in this module are of this type
-pub type Similarity = Fn(&HashMap<usize, f64>, &HashMap<usize, f64>, usize) -> f64;
-
 /// Computes the cosine similarity between two sparse vectors.
 /// It returns 0.0 if one of the vectors has null norm.
 #[allow(unused_variables)]
