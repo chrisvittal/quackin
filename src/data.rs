@@ -32,8 +32,6 @@ pub trait DataHandler {
     /// Adds a rating given by an user to an item, it returns `true` if the
     ///rating was added
     fn add_rating(&mut self, user_id: ID, item_id: ID, rating: f64) -> bool;
-    /// Removes a rating given by an user to an item
-    fn remove_rating(&mut self, user_id: ID, item_id: ID);
 }
 
 /// A basic data handler, it should be enough almost everytime or
@@ -133,13 +131,12 @@ impl DataHandler for BasicDataHandler {
             }
         false
     }
-    fn remove_rating(&mut self, user_id: ID, item_id: ID) {
-        self.ratings.remove(&(user_id, item_id));
-    }
 }
 
 /// An Sqlite data handler, it should be faster than the BasicDataHandler
 pub struct SqliteDataHandler {
+    user_ids: HashSet<ID>,
+    item_ids: HashSet<ID>,
     connection: Connection
 }
 
@@ -152,14 +149,20 @@ impl SqliteDataHandler {
                   item_id    INTEGER    NOT NULL,
                   rating     REAL       NOT NULL
                   )", &[]).unwrap();
+        connection.execute("CREATE INDEX user_index ON ratings (user_id)", &[]).unwrap();
+        connection.execute("CREATE INDEX item_index ON ratings (item_id)", &[]).unwrap();
+        connection.execute("CREATE UNIQUE INDEX comp_index ON ratings (user_id, item_id)", &[]).unwrap();
         SqliteDataHandler {
-            connection: connection
+            connection: connection,
+            user_ids: HashSet::new(),
+            item_ids: HashSet::new()
         }
     }
     /// Creates a data handler from a `csv::Reader`
     pub fn from_reader(mut reader: Reader<File>) -> SqliteDataHandler {
-        
         let connection = Connection::open_in_memory().unwrap();
+        let mut user_ids = HashSet::<ID>::new();
+        let mut item_ids = HashSet::<ID>::new();
         connection.execute("CREATE TABLE ratings (
                   user_id    INTEGER    NOT NULL,
                   item_id    INTEGER    NOT NULL,
@@ -167,40 +170,28 @@ impl SqliteDataHandler {
                   )", &[]).unwrap();
         connection.execute("CREATE INDEX user_index ON ratings (user_id)", &[]).unwrap();
         connection.execute("CREATE INDEX item_index ON ratings (item_id)", &[]).unwrap();
+        connection.execute("CREATE UNIQUE INDEX comp_index ON ratings (user_id, item_id)", &[]).unwrap();
         for row in reader.decode() {
             let (user_id, item_id, rating): (i32, i32, f64) = row.unwrap();
             connection.execute("INSERT INTO ratings (user_id, item_id, rating)
-                  VALUES (?1, ?2, ?3)",
-                 &[&user_id, &item_id, &rating]).unwrap();
+                  VALUES (?1, ?2, ?3)", &[&user_id, &item_id, &rating]).unwrap();
+            user_ids.insert(user_id as usize);
+            item_ids.insert(item_id as usize);
         }
         SqliteDataHandler {
-            connection: connection
+            connection: connection,
+            user_ids: user_ids,
+            item_ids: item_ids
         }
     }
 }
 
 impl DataHandler for SqliteDataHandler {
     fn get_user_ids(&self) -> HashSet<ID> {
-        let mut statement = self.connection
-            .prepare("SELECT user_id FROM ratings").unwrap();
-        let rows = statement.query_map(&[], |row| row.get(0)).unwrap();
-        let mut user_ids = HashSet::<ID>::new();
-        for row in rows {
-            let user_id: i32 = row.unwrap();
-            user_ids.insert(user_id as ID);
-        }
-        user_ids
+        self.user_ids.clone()
     }
     fn get_item_ids(&self) -> HashSet<ID> {
-        let mut statement = self.connection
-            .prepare("SELECT item_id FROM ratings").unwrap();
-        let rows = statement.query_map(&[], |row| row.get(0)).unwrap();
-        let mut item_ids = HashSet::<ID>::new();
-        for row in rows {
-            let item_id: i32 = row.unwrap();
-            item_ids.insert(item_id as ID);
-        }
-        item_ids
+        self.item_ids.clone()
     }
     fn get_user_ratings(&self, user_id: ID) -> HashMap<ID, f64> {
         let mut statement = self.connection
@@ -237,21 +228,32 @@ impl DataHandler for SqliteDataHandler {
         rows.next().unwrap().unwrap()
     }
     fn get_num_users(&self) -> usize {
-        0
+        self.user_ids.len()
     }
     fn get_num_items(&self) -> usize {
-        0
+        self.item_ids.len()
     }
     fn add_user(&mut self, user_id: ID) -> bool {
-        true
+        if !self.user_ids.contains(&user_id) {
+            self.user_ids.insert(user_id);
+            return true;
+        }
+        false
     }
     fn add_item(&mut self, item_id: ID) -> bool {
-        true
+        if !self.item_ids.contains(&item_id) {
+            self.item_ids.insert(item_id);
+            return true;
+        }
+        false
     }
     fn add_rating(&mut self, user_id: ID, item_id: ID, rating: f64) -> bool {
-        true
-    }
-    fn remove_rating(&mut self, user_id: ID, item_id: ID) {
-        ()
+        let transaction =
+            self.connection.execute("INSERT INTO ratings (user_id, item_id, rating) VALUES (?1, ?2, ?3)",
+                                    &[&(user_id as i32), &(item_id as i32), &rating]);
+        match transaction {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }
