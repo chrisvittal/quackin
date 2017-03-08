@@ -5,4 +5,4 @@ authors = ["z1mvader <z1mvader@protonmail.com>"]
 
 [dependencies]
 csv = "0.15.0"
-rustc-serialize = "0.3.0"
+
