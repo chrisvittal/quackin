@@ -1,13 +1,17 @@
 [package]
 authors = ["z1mvader <z1mvader@protonmail.com>"]
-description = "Oozie is a recommender systems & machine learning framework written in Rust and inspired on Apache Mahout"
+description = "Oozie is a recommender systems  framework written in Rust and inspired on Apache Mahout. There will be breaking changes until v1.0.0 (if we get there)"
 keywords = ['recommender', 'systems', 'apache', 'mahout']
 license = "MIT"
 name = "oozie"
 readme = "README.md"
 repository = "https://github.com/z1mvader/oozie"
 documentation = "https://docs.rs/oozie/"
-version = "0.1.1"
+version = "0.1.2"
+exclude = [
+    "data/*",
+]
+
 
 [dependencies]
 csv = "0.15.0"

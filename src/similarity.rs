@@ -1,4 +1,4 @@
-//! Module with some basic similarities, you can write your own using the sparse module
+//! Module with some basic similarities between vectors
 
 use std::collections::HashMap;
 use super::sparse::*;

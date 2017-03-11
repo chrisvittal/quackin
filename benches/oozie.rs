@@ -53,6 +53,23 @@ fn basic_user_predict(b: &mut Bencher) {
 }
 
 #[bench]
+fn knn_user_predict(b: &mut Bencher) {
+    let reader = Reader::from_file("./data/movielens.csv")
+        .unwrap().delimiter(b' ');
+    let mut data_handler: BasicDataHandler = BasicDataHandler::from_reader(reader);
+    let user_ids = data_handler.get_user_ids();
+    let item_ids = data_handler.get_item_ids();
+    let recommender: KNNUserRecommender<BasicDataHandler> =
+        KNNUserRecommender::new(&mut data_handler, 20, cosine);
+    let mut rng = thread_rng();
+    b.iter(|| {
+        let user_id = *sample(&mut rng, &user_ids, 1)[0];
+        let item_id = *sample(&mut rng, &item_ids, 1)[0];
+        recommender.predict(user_id, item_id)
+    });
+}
+
+#[bench]
 fn basic_item_predict(b: &mut Bencher) {
     let reader = Reader::from_file("./data/movielens.csv")
         .unwrap().delimiter(b' ');
@@ -70,6 +87,24 @@ fn basic_item_predict(b: &mut Bencher) {
 }
 
 #[bench]
+fn knn_item_predict(b: &mut Bencher) {
+    let reader = Reader::from_file("./data/movielens.csv")
+        .unwrap().delimiter(b' ');
+    let mut data_handler: BasicDataHandler = BasicDataHandler::from_reader(reader);
+    let user_ids = data_handler.get_user_ids();
+    let item_ids = data_handler.get_item_ids();
+    let recommender: KNNItemRecommender<BasicDataHandler> =
+        KNNItemRecommender::new(&mut data_handler, 20, cosine);
+    let mut rng = thread_rng();
+    b.iter(|| {
+        let user_id = *sample(&mut rng, &user_ids, 1)[0];
+        let item_id = *sample(&mut rng, &item_ids, 1)[0];
+        recommender.predict(user_id, item_id)
+    });
+}
+
+#[bench]
+#[ignore]
 fn basic_user_recommend(b: &mut Bencher) {
     let reader = Reader::from_file("./data/movielens.csv")
         .unwrap().delimiter(b' ');
@@ -85,6 +120,7 @@ fn basic_user_recommend(b: &mut Bencher) {
 }
 
 #[bench]
+#[ignore]
 fn basic_item_recommend(b: &mut Bencher) {
     let reader = Reader::from_file("./data/movielens.csv")
         .unwrap().delimiter(b' ');

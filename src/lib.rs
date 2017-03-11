@@ -6,5 +6,5 @@ pub mod recommender;
 pub mod sparse;
 pub mod similarity;
 
-/// Type for the user and item ids
+/// Type alias for the user and item ids
 pub type ID = usize;

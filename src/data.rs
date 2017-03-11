@@ -1,4 +1,4 @@
-//! Module with basic data loading and handling utilities
+//! Module with basic data loading and handling utilities.
 use std::collections::HashMap;
 use super::ID;
 use csv::Reader;
@@ -7,7 +7,7 @@ use std::fs::File;
 /// This trait is based on Mahout's `DataModel` interface.
 /// States the basic functions that a repository containing information about
 /// users, items and ratings must have. I'm still wondering if adding/removing
-/// users and items should be on the trait or not
+/// users and items should be on the trait or not.
 pub trait DataHandler {
     /// Returns all users IDs
     fn get_user_ids(&self) -> Vec<ID>;
@@ -32,8 +32,11 @@ pub trait DataHandler {
     fn add_rating(&mut self, user_id: ID, item_id: ID, rating: f64) -> bool;
 }
 
-/// A basic data handler, it should be enough almost everytime or
-/// it can be used as an example if you want to write your own
+/// A basic data handler, it should be enough almost everytime or it can be
+/// used as an example if you want to write your own. It creates a HashMap
+/// for storing the ratings indexed by user and another one indexed by item.
+/// So it duplicates the data but it should be fast enough (if you know how
+/// to make it faster, please contact me)
 pub struct BasicDataHandler {
     user_ratings: HashMap<ID, HashMap<ID, f64>>,
     item_ratings: HashMap<ID, HashMap<ID, f64>>
