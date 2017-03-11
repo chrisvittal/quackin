@@ -1,4 +1,3 @@
-extern crate rusqlite;
 extern crate csv;
 
 pub mod data;
