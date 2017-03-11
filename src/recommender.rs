@@ -1,7 +1,7 @@
 //! Module with the basic tools to build a recommender
 
 use super::data::DataHandler;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use super::ID;
 
 
@@ -17,13 +17,13 @@ pub trait Recommender {
 pub struct BasicUserRecommender<'a, D: DataHandler + 'a> {
     data_handler: &'a mut D,
     threshold: f64,
-    similarities: BTreeMap<(ID, ID), f64>,
-    similarity: fn(&BTreeMap<ID, f64>, &BTreeMap<ID, f64>, usize) -> f64
+    similarities: HashMap<(ID, ID), f64>,
+    similarity: fn(&HashMap<ID, f64>, &HashMap<ID, f64>, usize) -> f64
 }
 
 impl<'a, D: DataHandler + 'a> BasicUserRecommender<'a, D> {
-    pub fn new(data_handler: &mut D, threshold: f64, similarity: fn(&BTreeMap<ID, f64>, &BTreeMap<ID, f64>, usize) -> f64) -> BasicUserRecommender<D> {
-        let mut similarities: BTreeMap<(ID, ID), f64> = BTreeMap::new();
+    pub fn new(data_handler: &mut D, threshold: f64, similarity: fn(&HashMap<ID, f64>, &HashMap<ID, f64>, usize) -> f64) -> BasicUserRecommender<D> {
+        let mut similarities: HashMap<(ID, ID), f64> = HashMap::new();
         let user_ids = data_handler.get_user_ids();
         let n = data_handler.get_num_items();
         for user_id1 in &user_ids {
@@ -104,13 +104,13 @@ impl<'a, D: DataHandler + 'a> Recommender for BasicUserRecommender<'a, D> {
 pub struct BasicItemRecommender<'a, D: DataHandler + 'a> {
     data_handler: &'a mut D,
     threshold: f64,
-    similarities: BTreeMap<(ID, ID), f64>,
-    similarity: fn(&BTreeMap<ID, f64>, &BTreeMap<ID, f64>, usize) -> f64
+    similarities: HashMap<(ID, ID), f64>,
+    similarity: fn(&HashMap<ID, f64>, &HashMap<ID, f64>, usize) -> f64
 }
 
 impl<'a, D: DataHandler + 'a> BasicItemRecommender<'a, D> {
-    pub fn new(data_handler: &mut D, threshold: f64, similarity: fn(&BTreeMap<usize, f64>, &BTreeMap<usize, f64>, usize) -> f64) -> BasicItemRecommender<D> {
-        let mut similarities: BTreeMap<(ID, ID), f64> = BTreeMap::new();
+    pub fn new(data_handler: &mut D, threshold: f64, similarity: fn(&HashMap<usize, f64>, &HashMap<usize, f64>, usize) -> f64) -> BasicItemRecommender<D> {
+        let mut similarities: HashMap<(ID, ID), f64> = HashMap::new();
         let item_ids = data_handler.get_item_ids();
         let n = data_handler.get_num_users();
         for item_id1 in &item_ids {

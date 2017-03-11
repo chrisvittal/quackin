@@ -1,5 +1,5 @@
 //! Module with basic data loading and handling utilities
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use super::ID;
 use csv::Reader;
 use std::fs::File;
@@ -14,9 +14,9 @@ pub trait DataHandler {
     /// Returns all items IDs
     fn get_item_ids(&self) -> Vec<ID>;
     /// Returns the rating for each item rated by an user
-    fn get_user_ratings(&self, user_id: ID) -> BTreeMap<ID, f64>;
+    fn get_user_ratings(&self, user_id: ID) -> HashMap<ID, f64>;
     /// Returns the rating for each user who rated an item
-    fn get_item_ratings(&self, item_id: ID) -> BTreeMap<ID, f64>;
+    fn get_item_ratings(&self, item_id: ID) -> HashMap<ID, f64>;
     /// Rturns the rating given by an user to an item
     fn get_rating(&self, user_id: ID, item_id: ID) -> f64;
     /// Returns the number of users
@@ -35,15 +35,15 @@ pub trait DataHandler {
 /// A basic data handler, it should be enough almost everytime or
 /// it can be used as an example if you want to write your own
 pub struct BasicDataHandler {
-    user_ratings: BTreeMap<ID, BTreeMap<ID, f64>>,
-    item_ratings: BTreeMap<ID, BTreeMap<ID, f64>>
+    user_ratings: HashMap<ID, HashMap<ID, f64>>,
+    item_ratings: HashMap<ID, HashMap<ID, f64>>
 }
 
 impl BasicDataHandler {
     /// Creates an empty data handler
     pub fn new() -> BasicDataHandler {
-        let user_ratings: BTreeMap<ID, BTreeMap<ID, f64>> = BTreeMap::new();
-        let item_ratings: BTreeMap<ID, BTreeMap<ID, f64>> = BTreeMap::new();
+        let user_ratings: HashMap<ID, HashMap<ID, f64>> = HashMap::new();
+        let item_ratings: HashMap<ID, HashMap<ID, f64>> = HashMap::new();
         BasicDataHandler {
             user_ratings: user_ratings,
             item_ratings: item_ratings
@@ -51,8 +51,8 @@ impl BasicDataHandler {
     }
     /// Creates a data handler from a `csv::Reader`
     pub fn from_reader(mut reader: Reader<File>) -> BasicDataHandler {
-        let mut user_ratings: BTreeMap<ID, BTreeMap<ID, f64>> = BTreeMap::new();
-        let mut item_ratings: BTreeMap<ID, BTreeMap<ID, f64>> = BTreeMap::new();
+        let mut user_ratings: HashMap<ID, HashMap<ID, f64>> = HashMap::new();
+        let mut item_ratings: HashMap<ID, HashMap<ID, f64>> = HashMap::new();
         for row in reader.decode() {
             let (user_id, item_id, rating): (ID, ID, f64) = row.unwrap();
             
@@ -61,7 +61,7 @@ impl BasicDataHandler {
                 user_rating.insert(item_id, rating);
             }
             else {
-                let mut user_rating: BTreeMap<ID, f64> = BTreeMap::new();
+                let mut user_rating: HashMap<ID, f64> = HashMap::new();
                 user_rating.insert(item_id, rating);
                 user_ratings.insert(user_id, user_rating);
             }
@@ -71,7 +71,7 @@ impl BasicDataHandler {
                 item_rating.insert(user_id, rating);
             }
             else {
-                let mut item_rating: BTreeMap<ID, f64> = BTreeMap::new();
+                let mut item_rating: HashMap<ID, f64> = HashMap::new();
                 item_rating.insert(user_id, rating);
                 item_ratings.insert(item_id, item_rating);
             }
@@ -90,10 +90,10 @@ impl DataHandler for BasicDataHandler {
     fn get_item_ids(&self) -> Vec<ID> {
         self.item_ratings.keys().cloned().collect()
     }
-    fn get_user_ratings(&self, user_id: ID) -> BTreeMap<ID, f64> {
+    fn get_user_ratings(&self, user_id: ID) -> HashMap<ID, f64> {
         self.user_ratings.get(&user_id).unwrap().clone()
     }
-    fn get_item_ratings(&self, item_id: ID) -> BTreeMap<ID, f64> {
+    fn get_item_ratings(&self, item_id: ID) -> HashMap<ID, f64> {
         self.item_ratings.get(&item_id).unwrap().clone()
     }
     fn get_rating(&self, user_id: ID, item_id: ID) -> f64 {
@@ -107,14 +107,14 @@ impl DataHandler for BasicDataHandler {
     }
     fn add_user(&mut self, user_id: ID) -> bool {
         if !self.user_ratings.contains_key(&user_id) {
-            self.user_ratings.insert(user_id, BTreeMap::new());
+            self.user_ratings.insert(user_id, HashMap::new());
             return true;
         }
         false
     }
     fn add_item(&mut self, item_id: ID) -> bool {
         if !self.item_ratings.contains_key(&item_id) {
-            self.item_ratings.insert(item_id, BTreeMap::new());
+            self.item_ratings.insert(item_id, HashMap::new());
             return true;
         }
         false
