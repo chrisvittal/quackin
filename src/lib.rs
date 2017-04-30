@@ -1,9 +1,5 @@
 extern crate csv;
+extern crate sprs;
 
-pub mod data;
 pub mod recommender;
-pub mod sparse;
-pub mod similarity;
-
-/// Type alias for the user and item ids
-pub type ID = usize;
+pub mod measure;
