@@ -1,1 +1,1 @@
-mod collaborative;
+pub mod collaborative;

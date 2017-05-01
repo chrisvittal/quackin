@@ -1,37 +1,24 @@
+extern crate csv;
 extern crate sprs;
 extern crate oozie;
 
 use sprs::{CsVecOwned};
 use oozie::recommender::collaborative::KnnUserRecommender;
+use oozie::data::{BasicDataSet, DataSet};
 use oozie::measure::similarity::cosine;
+use csv::Reader;
 
 #[test]
-fn add_user_test() {
-    let expected = CsVecOwned::<f64>::empty(0);
-    let mut recommender = KnnUserRecommender::empty(cosine);
-    recommender.add_user("new_user").unwrap();
-    assert_eq!(expected, recommender.get_user_vector("new_user").unwrap());
-}
+fn it_works() {
+    let user_reader = Reader::from_file("data/mini_set/users.csv").unwrap();
+    let item_reader = Reader::from_file("data/mini_set/items.csv").unwrap();
+    let rating_reader = Reader::from_file("data/mini_set/ratings.csv").unwrap();
 
-#[test]
-fn add_item_test() {
-    let expected = CsVecOwned::<f64>::empty(1);
-    let mut recommender = KnnUserRecommender::empty(cosine);
-    recommender.add_user("user_0").unwrap();
-    recommender.add_item("item_0").unwrap();
-    assert_eq!(expected, recommender.get_user_vector("user_0").unwrap());
-}
+    let data_set = BasicDataSet::from_csv(user_reader, item_reader, rating_reader);
+    let recommender = KnnUserRecommender::from_dataset(data_set, cosine);
 
-#[test]
-fn get_inexistent_user_vector_test() {
-    let mut recommender = KnnUserRecommender::empty(cosine);
-    recommender.add_user("new_user").unwrap();
-    recommender.get_user_vector("not_new_user").unwrap_err();
-}
-
-#[test]
-fn get_inexistent_item_index_test() {
-    let mut recommender = KnnUserRecommender::empty(cosine);
-    recommender.add_item("new_item").unwrap();
-    recommender.get_item_index("not_new_item").unwrap_err();
+    println!("{}", recommender.predict("user_1", "item_0"));
+    println!("{}", recommender.predict("user_1", "item_1"));
+    println!("{}", recommender.predict("user_1", "item_2"));
+    println!("{:?}", recommender.recommend("user_1"));
 }

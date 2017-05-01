@@ -1,0 +1,5 @@
+user_id,item_id,rating
+user_0,item_0,0
+user_1,item_1,1
+user_1,item_2,5
+user_2,item_2,2
