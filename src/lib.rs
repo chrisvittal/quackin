@@ -9,7 +9,7 @@
 //! - Being an environment to build, test and evaluate new algorithms.
 //!
 //! Until we get a website for the crate, this docs will be the primary
-//! reference for both technical and user-side aspects of Oozie.
+//! reference for both technical and user-side aspects of Quackin.
 //!
 //! Quackin was called Oozie as a reference to Apache Mahout, but then I
 //! discovered that Apache Oozie already exists. Now is called Quackin because
@@ -27,11 +27,9 @@
 //! ## Submodules
 //!
 //! Quackin is divided in the following submodules:
-//! - `data`: to read and handle data
-//! - `recommender`: to build recommenders
-//! - `metrics`: to measure similarities, performance, etc.
-//!
-//!
+//! 1. `data`: to read and handle data
+//! 2. `recommender`: to build recommenders
+//! 3. `metrics`: to measure similarities, performance, etc.
 
 extern crate csv;
 extern crate rustc_serialize;
