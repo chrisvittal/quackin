@@ -12,8 +12,6 @@ exclude = [
     "data/*",
 ]
 
-
 [dependencies]
 csv = "0.15.0"
-rand = "0.3.0"
-sprs = "0.5.0"
+rustc-serialize="0.3.0"

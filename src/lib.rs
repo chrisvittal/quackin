@@ -1,6 +1,4 @@
 extern crate csv;
-extern crate sprs;
+extern crate rustc_serialize;
 
-pub mod recommender;
-pub mod measure;
 pub mod data;
