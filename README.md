@@ -1,5 +1,7 @@
 # Quackin
 
+[![travis](https://img.shields.io/travis/z1mvader/quackin.svg)](https://travis-ci.org/z1mvader/quackin)  [![crates](https://img.shields.io/crates/v/quackin.svg)](https://crates.io/crates/quackin)
+
 Release the quackin! 🦆
 
 Quackin is a recommender systems framework written in Rust. This is a young
