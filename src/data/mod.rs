@@ -20,7 +20,47 @@ use csv;
 use std::hash::Hash;
 use rustc_serialize::Decodable;
 
-/// Trait that every record must satisfy
+/// Trait that every record must satisfy.
+///
+/// This is intended to be used when a dataset has a order in its columns
+/// different from the one of `BaseRecord` which is `user_id,item_id,rating`
+/// or when the dataset has more columns.
+///
+/// It would be cool to add a derive for this trait.
+///
+/// # Examples
+///
+/// Lets suppose that we have a dataset with the following columns:
+/// `user_id,product_name,rating,timestamp`, we will write a struct for
+/// decoding such data.
+///
+/// ```ignore
+/// use rustc_serialize::Decodable;
+/// use quackin::data::Record;
+///
+/// #[derive(RustcDecodable)]
+/// struct MyRecord {
+///     user_id: u32,
+///     product_name: String, // fields can have any name
+///     rating: f64,
+///     timestamp: u64, // we can have additional fields
+/// }
+///
+/// impl Record<u32, String> for MyRecord {
+///     fn get_user_id(&self) -> &u32 {
+///         &self.user_id
+///     }
+///     fn get_item_id(&self) -> &String {
+///         &self.product_name
+///     }
+///     fn get_rating(&self) -> f64 {
+///         self.rating
+///     }
+/// }
+///
+/// // Now we can read the records
+/// let my_records: Vec<MyRecord> = read_records("path/to/dataset", None, false).unwrap();
+/// ```
 pub trait Record<U, I>: Decodable where U: Hash + Eq + Decodable, I: Hash + Eq + Decodable {
     fn get_user_id(&self) -> &U;
     fn get_item_id(&self) -> &I;
@@ -47,7 +87,7 @@ impl<U, I> Record<U, I> for BaseRecord<U, I> where U: Hash + Eq + Decodable, I: 
     }
 }
 
-/// A `BaseRecord` where the user_id and item_id are of type `String`
+/// A `BaseRecord` where `user_id` and `item_id` are of type `String`
 pub type DefaultRecord = BaseRecord<String, String>;
 
 /// Reads a csv file and loads its contents into a `Vec` of records.

@@ -10,7 +10,7 @@
 //! - TimeSVD++
 
 use std::hash::Hash;
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 
 use sprs::CsVecOwned;
 use rustc_serialize::Decodable;
@@ -18,6 +18,8 @@ use rustc_serialize::Decodable;
 use super::data::Record;
 use super::metrics::similarity::Similarity;
 
+/// K-nearest neigbors user based recommender.
+#[allow(dead_code)]
 pub struct KnnUserRecommender<U, I> {
     user_indices: HashMap<U, usize>,
     item_indices: HashMap<I, usize>,
@@ -25,15 +27,17 @@ pub struct KnnUserRecommender<U, I> {
     item_ids: Vec<I>,
     ratings: HashMap<usize, CsVecOwned<f64>>,
     similarity: Similarity,
+    n_neighbors: usize
 }
 
 impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: Hash + Eq + Decodable + Clone {
-    pub fn from_records<R>(records: &[R], similarity: Similarity) -> Self where R: Record<U, I> {
+    /// Constructs a new recommender from a vector of records.
+    pub fn from_records<R>(records: &[R], similarity: Similarity, n_neighbors: usize) -> Self where R: Record<U, I> {
         let mut user_indices = HashMap::<U, usize>::new();
         let mut item_indices = HashMap::<I, usize>::new();
         let mut user_ids = Vec::new();
         let mut item_ids = Vec::new();
-        let mut pre_vectors = HashMap::<usize, (Vec<usize>, Vec<f64>)>::new();
+        let mut pre_vectors = HashMap::<usize, (BTreeMap<usize, f64>)>::new();
         let (mut i, mut j) = (0, 0);
 
         for record in records {
@@ -58,16 +62,20 @@ impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: H
 
             if pre_vectors.contains_key(&user_index) {
                 let pre_vector = pre_vectors.get_mut(&user_index).unwrap();
-                pre_vector.0.push(item_index);
-                pre_vector.1.push(rating);
+                pre_vector.insert(item_index, rating);
             }
             else {
-                pre_vectors.insert(user_index, (vec![item_index], vec![rating]));
+                let mut pre_vector = BTreeMap::new();
+                pre_vector.insert(item_index, rating);
+                pre_vectors.insert(user_index, pre_vector);
             }
         }
 
         let ratings = pre_vectors.into_iter()
-            .map(|(k, (ind, dat))| (k, CsVecOwned::new(item_indices.len(), ind, dat)))
+            .map(|(k, ind_dat)| {
+                let (ind, dat):(Vec<usize>, Vec<f64>) = ind_dat.into_iter().unzip();
+                (k, CsVecOwned::new(item_indices.len(), ind, dat))
+            })
             .collect();
         Self {
             user_indices: user_indices,
@@ -76,10 +84,14 @@ impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: H
             item_ids: item_ids,
             ratings: ratings,
             similarity: similarity,
+            n_neighbors: n_neighbors
         }
     }
-
-    pub fn predict(&self, user_id: &U, item_id: &I, k: usize) -> Result<f64, String> {
+    /// Predicts the rating for an item given by an user.
+    ///
+    /// Returns error if the user or item ids could not be found
+    /// or if there is no users with a positive similarity.
+    pub fn predict(&self, user_id: &U, item_id: &I) -> Result<f64, String> {
         let user_index = try!(self.user_indices.get(user_id).ok_or("User not found"));
         let item_index = try!(self.item_indices.get(item_id).ok_or("Item not found"));
 
@@ -98,8 +110,7 @@ impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: H
         }).collect::<Vec<_>>();
 
         ratings.sort_by(|&(_, x), &(_, y)| y.partial_cmp(&x).unwrap());
-        ratings.truncate(k);
-
+        ratings.truncate(self.n_neighbors);
 
         let (rating, norm) = ratings.into_iter()
             .fold((0.0, 0.0), |(r_acc, s_acc), (r, s)| {
@@ -110,7 +121,7 @@ impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: H
             Ok(rating / norm)
         }
         else {
-            Ok(0.0)
+            Err("No neighbors".to_string())
         }
     }
 }
