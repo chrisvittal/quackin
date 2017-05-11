@@ -17,19 +17,13 @@
 //! moment.
 //!
 //! ## Usage
-//! To start using Oozie just add it as a dependency to your `Cargo.toml` file:
+//! To start using Quackin just add it as a dependency to your `Cargo.toml` file:
 //!
 //! ```ignore
 //! [dependencies]
 //! quackin = "*"
 //! ```
 //!
-//! ## Submodules
-//!
-//! Quackin is divided in the following submodules:
-//! 1. `data`: to read and handle data
-//! 2. `recommender`: to build recommenders
-//! 3. `metrics`: to measure similarities, performance, etc.
 
 extern crate csv;
 extern crate rustc_serialize;
