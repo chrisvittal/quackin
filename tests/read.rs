@@ -1,4 +1,4 @@
-extern crate oozie;
+extern crate quackin;
 extern crate rustc_serialize;
 
 use oozie::data::{DefaultRecord, read_ratings};
