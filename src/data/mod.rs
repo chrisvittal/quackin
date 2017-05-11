@@ -1,22 +1,5 @@
-extern crate csv;
-extern crate rustc_serialize;
-
+use csv;
 use rustc_serialize::Decodable;
-
-// Errors
-use std::num::ParseIntError;
-use std::convert::From;
-
-#[derive(Debug)]
-pub enum ReadError {
-    File(csv::Error)
-}
-
-impl From<csv::Error> for ReadError {
-    fn from(err: csv::Error) -> ReadError {
-        ReadError::File(err)
-    }
-}
 
 #[derive(RustcDecodable)]
 pub struct BaseRecord<U, I> {
@@ -27,7 +10,7 @@ pub struct BaseRecord<U, I> {
 
 pub type DefaultRecord = BaseRecord<String, String>;
 
-pub fn read_ratings<R>(path: &str, delimiter: Option<char>, has_headers: bool) -> Result<Vec<R>, ReadError> where R: Decodable {
+pub fn read_ratings<R>(path: &str, delimiter: Option<char>, has_headers: bool) -> Result<Vec<R>, csv::Error> where R: Decodable {
     let del = match delimiter {
         Some(del) => del as u8,
         None => ',' as u8

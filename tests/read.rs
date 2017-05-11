@@ -1,7 +1,7 @@
 extern crate quackin;
 extern crate rustc_serialize;
 
-use oozie::data::{DefaultRecord, read_ratings};
+use quackin::data::{DefaultRecord, read_ratings};
 
 #[derive(RustcDecodable)]
 pub struct CustomRecord {

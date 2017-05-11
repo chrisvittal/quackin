@@ -19,14 +19,14 @@
 //! ## Usage
 //! To start using Oozie just add it as a dependency to your `Cargo.toml` file:
 //!
-//! ```rust, ignore
+//! ```ignore
 //! [dependencies]
-//! oozie = "*"
+//! quackin = "*"
 //! ```
 //!
 //! ## Submodules
 //!
-//! Oozie is divided in the following submodules:
+//! Quackin is divided in the following submodules:
 //! - `data`: to read and handle data
 //! - `recommender`: to build recommenders
 //! - `metrics`: to measure similarities, performance, etc.
