@@ -8,19 +8,19 @@ use quackin::recommender::KnnUserRecommender;
 use quackin::metrics::similarity::cosine;
 
 #[derive(RustcDecodable)]
-pub struct CustomRecord {
-    item_id: i32,
-    user_id: i32,
+pub struct MyRecord {
+    user_id: u32,
+    movie_id: u32,
     rating: f64,
-    stuff: i32
+    timestamp: u32
 }
 
-impl Record<i32, i32> for CustomRecord {
-    fn get_user_id(&self) -> &i32 {
+impl Record<u32, u32> for MyRecord {
+    fn get_user_id(&self) -> &u32 {
         &self.user_id
     }
-    fn get_item_id(&self) -> &i32 {
-        &self.item_id
+    fn get_item_id(&self) -> &u32 {
+        &self.movie_id
     }
     fn get_rating(&self) -> f64 {
         self.rating
@@ -44,7 +44,7 @@ fn read_mock_with_separator() {
 
 #[test]
 fn read_mock_with_custom_records() {
-    let records: Vec<CustomRecord> = read_records("data/mock_custom.csv", None, false).unwrap();
+    let records: Vec<MyRecord> = read_records("data/mock_custom.csv", None, false).unwrap();
 }
 
 #[test]
@@ -67,3 +67,4 @@ fn knn_user_recommender() {
         assert!((pred_rat - rating).abs() < 0.1);
     }
 }
+
