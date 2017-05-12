@@ -34,7 +34,7 @@
 //! following columns: `userId`, `movieId`, `rating` and `timestamp`. We need
 //! to write a `struct` to store this records
 //!
-//! ```rust
+//! ```ignore
 //! struct MyRecord {
 //!     user_id: u32,
 //!     movie_id: u32,
@@ -46,7 +46,7 @@
 //! dataset, but the name of them is not important, we could use any name we
 //! like. Now we need to implement the `Record` trait for `MyRecord`
 //!
-//! ```rust
+//! ```ignore
 //! use quackin::data::{Record, read_records};
 //!
 //! impl Record<u32, u32> for MyRecord {
@@ -65,7 +65,7 @@
 //! the hardest part of the process. Now lets load the dataset:
 //!
 //! ```ignore
-//!     let records: Vec<MyRecord> = read_records("/path/to/movielens", None, true);
+//! let records: Vec<MyRecord> = read_records("/path/to/movielens", None, true);
 //! ```
 //! Thats it! now let's build a recommender
 //!
@@ -80,7 +80,7 @@
 //! let recommender = KnnUserRecommender::from_records(&records, cosine, 50);
 //! ```
 //! Now we can ask predictions from the recommender. For example, the user with
-//! user ID `1` gave a rating of 4 to the clasic science fiction movie "Tron".
+//! user ID `1` gave a rating of 4 to the classic science fiction movie "Tron".
 //! What would our recommender predict about this?
 //!
 //! ```ignore

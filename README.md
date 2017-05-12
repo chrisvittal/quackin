@@ -77,7 +77,7 @@ use quackin::recommender::KnnUserRecommender:
 let recommender = KnnUserRecommender::from_records(&records, cosine, 50);
 ```
 Now we can ask predictions from the recommender. For example, the user with
-user ID `1` gave a rating of 4 to the clasic science fiction movie "Tron".
+user ID `1` gave a rating of 4 to the classic science fiction movie "Tron".
 What would our recommender predict about this?
 
 ```rust
