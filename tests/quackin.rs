@@ -6,7 +6,7 @@ extern crate quackin;
 use quackin::data::{ReadOptions, read_records, read_custom_records};
 use quackin::data::Field::*;
 
-use quackin::recommender::KnnUserRecommender;
+use quackin::recommender::{KnnUserRecommender, Recommender};
 use quackin::metrics::similarity::cosine;
 
 #[test]

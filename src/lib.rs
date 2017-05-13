@@ -62,7 +62,7 @@
 //! using a cosine similarity
 //!
 //! ```ignore
-//! use quackin::recommender::KnnUserRecommender;
+//! use quackin::recommender::{KnnUserRecommender, Recommender};
 //! use quackin::metrics::similarity::cosine;
 //!
 //! let recommender = KnnUserRecommender::from_records(&records, cosine, 50);

@@ -16,6 +16,13 @@ use sprs::CsVecOwned;
 use super::data::Record;
 use super::metrics::similarity::Similarity;
 
+pub trait Recommender {
+    /// Predicts the rating a user would give to an item.
+    fn predict(&self, user_id: &str, item_id: &str) -> Result<f64, String>;
+    /// Returns a vector of Item IDs and predicted ratings sorted by rating.
+    fn recommend(&self, user_id: &str) -> Vec<(String, f64)>;
+}
+
 /// K-nearest neigbors user based recommender.
 #[allow(dead_code)]
 pub struct KnnUserRecommender {
@@ -85,11 +92,12 @@ impl KnnUserRecommender {
             n_neighbors: n_neighbors
         }
     }
-    /// Predicts the rating for an item given by an user.
-    ///
+}
+
+impl Recommender for KnnUserRecommender {
     /// Returns error if the user or item ids could not be found
     /// or if there is no users with a positive similarity.
-    pub fn predict(&self, user_id: &str, item_id: &str) -> Result<f64, String> {
+    fn predict(&self, user_id: &str, item_id: &str) -> Result<f64, String> {
         let user_index = try!(self.user_indices.get(user_id).ok_or("User not found"));
         let item_index = try!(self.item_indices.get(item_id).ok_or("Item not found"));
 
@@ -121,5 +129,15 @@ impl KnnUserRecommender {
         else {
             Err("No neighbors".to_string())
         }
+    }
+    fn recommend(&self, user_id: &str) -> Vec<(String, f64)> {
+        let mut recommendations = self.item_ids.iter().filter_map(|item_id| {
+            match self.predict(user_id, item_id) {
+                Ok(rating) => Some((item_id.clone(), rating)),
+                Err(_) => None
+            }
+        }).collect::<Vec<(String, f64)>>();
+        recommendations.sort_by(|&(_, x), &(_, y)| y.partial_cmp(&x).unwrap());
+        recommendations
     }
 }
