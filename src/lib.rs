@@ -41,7 +41,7 @@
 //! use quackin::data::{Record, ReadOptions, read_custom_records};
 //! quackin::data::Field::*;
 //!
-//! let options = ReadOptions::custom(vec![UserID, ItemID, Rating, Other], true, ',');
+//! let options = ReadOptions::custom(vec![UserID, ItemID, Rating, Other], true, ',').unwrap();
 //! //                                                             ^^^^^   ^^^^  ^^^
 //! //                                                             |       |     |
 //! //                             we don't care about the timestamp.      |     |
@@ -72,7 +72,7 @@
 //! What would our recommender predict about this?
 //!
 //! ```ignore
-//! println!("{:?}", recommender.predict(&1, &2105));
+//! println!("{:?}", recommender.predict("1", "2105"));
 //! // Ok(3.504942020280084)
 //! ```
 //! Not bad! we aren't that far from the real rating. Now you can start recommending
