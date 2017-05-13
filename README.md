@@ -23,46 +23,33 @@ in languages with a more developed ecosystem like Python or Java.
 
 ## Getting started
 We will write a simple movie recommender engine using Quackin over one of
-the movielens dataset (download `ml-latest-small.zip` from
-[here](https://grouplens.org/datasets/movielens/)).
+the movielens dataset. Download `ml-latest-small.zip` from
+[here](https://grouplens.org/datasets/movielens/), and then extract the
+`ratings.csv` file.
 
 ### Loading data into Quackin
 First we need to load the movielens dataset into Rust. This dataset has the
-following columns: `userId`, `movieId`, `rating` and `timestamp`. We need
-to write a `struct` to store this records
+following columns: `userId`, `movieId`, `rating` and `timestamp`. We must
+tell quackin that this file has this columns in this specific order. Also,
+we need to specify if this file has headers or not and which delimiter is
+separating the values`.
 
 ```rust
-struct MyRecord {
-    user_id: u32,
-    movie_id: u32,
-    rating: f64,
-    timestamp: u32
-}
-```
-The order of the fields must be the same as the order of the columns in the
-dataset, but the name of them is not important, we could use any name we
-like. Now we need to implement the `Record` trait for `MyRecord`
+use quackin::data::{Record, ReadOptions, read_custom_records};
+quackin::data::Field::*;
 
-```rust
-use quackin::data::{Record, read_records};
-
-impl Record<u32, u32> for MyRecord {
-    fn get_user_id(&self) -> &u32 {
-        &self.user_id
-    }
-    fn get_item_id(&self) -> &u32 {
-        &self.movie_id
-    }
-    fn get_rating(&self) -> f64 {
-        self.rating
-    }
-}
+let options = ReadOptions::custom(vec![UserID, ItemID, Rating, Other], true, ',');
+//                                                             ^^^^^   ^^^^  ^^^
+//                                                             |       |     |
+//                             we don't care about the timestamp.      |     |
+//                                                 this file has headers.    |
+//                                                    use comma as a delimiter.
 ```
 Whew, thats a lot of boilerplate for just loading the dataset. But this was
 the hardest part of the process. Now lets load the dataset:
 
 ```rust
-let records: Vec<MyRecord> = read_records("/path/to/movielens", None, true);
+let records = read_custom_records("/path/to/movielens", options);
 ```
 Thats it! now let's build a recommender
 

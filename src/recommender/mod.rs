@@ -9,49 +9,47 @@
 //! - SVD++
 //! - TimeSVD++
 
-use std::hash::Hash;
 use std::collections::{HashMap, BTreeMap};
 
 use sprs::CsVecOwned;
-use rustc_serialize::Decodable;
 
 use super::data::Record;
 use super::metrics::similarity::Similarity;
 
 /// K-nearest neigbors user based recommender.
 #[allow(dead_code)]
-pub struct KnnUserRecommender<U, I> {
-    user_indices: HashMap<U, usize>,
-    item_indices: HashMap<I, usize>,
-    user_ids: Vec<U>,
-    item_ids: Vec<I>,
+pub struct KnnUserRecommender {
+    user_indices: HashMap<String, usize>,
+    item_indices: HashMap<String, usize>,
+    user_ids: Vec<String>,
+    item_ids: Vec<String>,
     ratings: HashMap<usize, CsVecOwned<f64>>,
     similarity: Similarity,
     n_neighbors: usize
 }
 
-impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: Hash + Eq + Decodable + Clone {
-    /// Constructs a new recommender from a vector of records.
-    pub fn from_records<R>(records: &[R], similarity: Similarity, n_neighbors: usize) -> Self where R: Record<U, I> {
-        let mut user_indices = HashMap::<U, usize>::new();
-        let mut item_indices = HashMap::<I, usize>::new();
+impl KnnUserRecommender {
+    /// Constructs a new recommender from a slice of records.
+    pub fn from_records(records: &[Record], similarity: Similarity, n_neighbors: usize) -> Self {
+        let mut user_indices = HashMap::<String, usize>::new();
+        let mut item_indices = HashMap::<String, usize>::new();
         let mut user_ids = Vec::new();
         let mut item_ids = Vec::new();
         let mut pre_vectors = HashMap::<usize, (BTreeMap<usize, f64>)>::new();
         let (mut i, mut j) = (0, 0);
 
         for record in records {
-            let user_id = record.get_user_id();
-            let item_id = record.get_item_id();
-            let rating = record.get_rating();
+            let user_id: String = record.0.clone();
+            let item_id: String = record.1.clone();
+            let rating: f64 = record.2;
 
-            if !(user_ids.contains(user_id)) {
+            if !(user_ids.contains(&user_id)) {
                 user_ids.push(user_id.clone());
                 user_indices.insert(user_id.clone(), i);
                 i += 1;
             }
 
-            if !(item_ids.contains(item_id)) {
+            if !(item_ids.contains(&item_id)) {
                 item_ids.push(item_id.clone());
                 item_indices.insert(item_id.clone(), j);
                 j += 1;
@@ -91,7 +89,7 @@ impl<U, I> KnnUserRecommender<U, I> where U: Hash + Eq + Decodable + Clone, I: H
     ///
     /// Returns error if the user or item ids could not be found
     /// or if there is no users with a positive similarity.
-    pub fn predict(&self, user_id: &U, item_id: &I) -> Result<f64, String> {
+    pub fn predict(&self, user_id: &str, item_id: &str) -> Result<f64, String> {
         let user_index = try!(self.user_indices.get(user_id).ok_or("User not found"));
         let item_index = try!(self.item_indices.get(item_id).ok_or("Item not found"));
 

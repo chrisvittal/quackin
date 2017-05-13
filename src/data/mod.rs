@@ -6,108 +6,137 @@
 //! # Examples
 //!
 //! ```ignore
-//! use quackin::data::{DefaultRecord, read_records}
+//! use quackin::data::{Record, ReadOptions, read_records}
 //!
-//! let records: Vec<DefaultRecord> = read_records("path/to/file", None, true);
-//! //                                                             ^^^^  ^^^^
-//! //                                                             |     |
-//! //                                                             |     the file has headers
-//! //                                                             use ',' as separator
+//! let records: Vec<Record> = read_records("path/to/file", ReadOptions::default());
+//!
 //! for record in records {
-//!     println!("{} {} {}", record.user_id, record.item_id, record.rating);
+//!     println!("{:?}", record);
 //! }
+//! ```
 use csv;
-use std::hash::Hash;
-use rustc_serialize::Decodable;
 
-/// Trait that every record must satisfy.
+
+/// Type for a record, it is a tuple of two `Strings` and a `f64`
 ///
-/// This is intended to be used when a dataset has a order in its columns
-/// different from the one of `BaseRecord` which is `user_id,item_id,rating`
-/// or when the dataset has more columns.
+/// It represents a record of a dataset consisting of:
 ///
-/// It would be cool to add a derive for this trait.
-///
-/// # Examples
-///
-/// Lets suppose that we have a dataset with the following columns:
-/// `user_id,product_name,rating,timestamp`, we will write a struct for
-/// decoding such data.
-///
-/// ```ignore
-/// use rustc_serialize::Decodable;
-/// use quackin::data::Record;
-///
-/// #[derive(RustcDecodable)]
-/// struct MyRecord {
-///     user_id: u32,
-///     product_name: String, // fields can have any name
-///     rating: f64,
-///     timestamp: u64, // we can have additional fields
-/// }
-///
-/// impl Record<u32, String> for MyRecord {
-///     fn get_user_id(&self) -> &u32 {
-///         &self.user_id
-///     }
-///     fn get_item_id(&self) -> &String {
-///         &self.product_name
-///     }
-///     fn get_rating(&self) -> f64 {
-///         self.rating
-///     }
-/// }
-///
-/// // Now we can read the records
-/// let my_records: Vec<MyRecord> = read_records("path/to/dataset", None, false).unwrap();
-/// ```
-pub trait Record<U, I>: Decodable where U: Hash + Eq + Decodable, I: Hash + Eq + Decodable {
-    fn get_user_id(&self) -> &U;
-    fn get_item_id(&self) -> &I;
-    fn get_rating(&self) -> f64;
+/// - An user ID
+/// - An item ID
+/// - A rating
+pub type Record = (String, String, f64);
+
+/// Possible fields on a dataset
+pub enum Field {
+    UserID,
+    ItemID,
+    Rating,
+    Other
 }
 
-/// A record consisting only of an `user_id`, an `item_id` and a `rating`
-#[derive(RustcDecodable)]
-pub struct BaseRecord<U, I> {
-    user_id: U,
-    item_id: I,
-    rating: f64,
+/// Options when reading a csv file
+pub struct ReadOptions {
+    fields: Vec<Field>,
+    has_headers: bool,
+    delimiter: char
 }
 
-impl<U, I> Record<U, I> for BaseRecord<U, I> where U: Hash + Eq + Decodable, I: Hash + Eq + Decodable {
-    fn get_user_id(&self) -> &U {
-        &self.user_id
+impl ReadOptions {
+    /// Assumes the csv file has no headers, uses `','` as delimiter
+    /// and that the columns are in the order `UserID`, `ItemID`, `Rating`
+    pub fn default() -> Self {
+        Self {
+            fields: vec![Field::UserID, Field::ItemID, Field::Rating],
+            has_headers: false,
+            delimiter: ','
+        }
     }
-    fn get_item_id(&self) -> &I {
-        &self.item_id
-    }
-    fn get_rating(&self) -> f64 {
-        self.rating
+
+    /// Constructor for custom options, use it if the columns of the csv file
+    /// are not in the `default` order, or if you need to specify the delimiter
+    /// or the presence of headers in the file.
+    ///
+    /// ## Example
+    ///
+    /// If you have a csv file like this:
+    ///
+    /// ```text, no_run
+    /// item_id user_id timestamp rating
+    /// u_00001 i_00001 765456787 5.0
+    /// u_00002 i_00002 534623443 2.0
+    /// ...
+    /// ```
+    /// you will need to use the `ReadOptions::custom` constructor like this
+    ///
+    /// ```rust
+    /// use quackin::data::ReadOptions;
+    /// use quackin::data::Field::*;
+    ///
+    /// let options = ReadOptions::custom(vec![ItemID, UserID, Other, Rating], true, ' ');
+    /// ```
+    pub fn custom(fields: Vec<Field>, has_headers: bool, delimiter: char) -> Self {
+        Self {
+            fields: fields,
+            has_headers: has_headers,
+            delimiter: delimiter
+        }
     }
 }
 
-/// A `BaseRecord` where `user_id` and `item_id` are of type `String`
-pub type DefaultRecord = BaseRecord<String, String>;
+/// Possible errors when reading a dataset
+#[derive(Debug)]
+pub enum ReadError {
+    Other(&'static str),
+    Csv(csv::Error),
+}
 
-/// Reads a csv file and loads its contents into a `Vec` of records.
-///
-/// `delimiter` defines if a delimiter must be used when reading the csv file,
-/// if is `None` it uses a `,` as default. `has_headers` defines if the csv file
-/// has headers or not.
-///
-/// Currently this function assumes that the records are stored on an `struct`
-/// that implements `Record` because there is no way of dinamically setting the
-/// number of columns nor the order of these. This needs refinement, but it
-/// works.
-pub fn read_records<R, U, I>(path: &str, delimiter: Option<char>, has_headers: bool) -> Result<Vec<R>, csv::Error> where R: Record<U, I>, U: Hash + Eq + Decodable, I: Hash + Eq + Decodable {
-    let del = match delimiter {
-        Some(del) => del as u8,
-        None => ',' as u8
-    };
+impl From<csv::Error> for ReadError {
+    fn from(err: csv::Error) -> ReadError {
+        ReadError::Csv(err)
+    }
+}
 
-    let mut reader = try!(csv::Reader::from_file(path)).has_headers(has_headers).delimiter(del);
-    let ratings = reader.decode().map(|record| record.unwrap()).collect::<Vec<R>>();
+/// Reads the records from a dataset stored in a csv file with custom options.
+///
+/// The first parameter is just the path where the csv file is located as a
+/// `&str`. The second parameter consists of an `struct` of type `ReadOptions`
+/// for custom reading options.
+pub fn read_custom_records(path: &str, options: ReadOptions) -> Result<Vec<Record>, ReadError> {
+    let n_fields = options.fields.len();
+
+    let mut user_index: usize = n_fields;
+    let mut item_index: usize = n_fields;
+    let mut rating_index: usize = n_fields;
+
+    for i in 0..n_fields {
+        match options.fields[i] {
+            Field::UserID => user_index = i,
+            Field::ItemID => item_index = i,
+            Field::Rating => rating_index = i,
+            Field::Other => ()
+        }
+    }
+
+    if [user_index, item_index, rating_index].iter().any(|&x| x == n_fields) {
+        return Err(ReadError::Other("Unconsistent field format"));
+    }
+
+    let del = options.delimiter as u8;
+
+    let mut reader = try!(csv::Reader::from_file(path))
+        .has_headers(options.has_headers)
+        .delimiter(del);
+    let ratings = reader.decode().map(|row| {
+        let row: Vec<String> = row.unwrap();
+        (row[user_index].clone(),
+         row[item_index].clone(),
+         row[rating_index].parse::<f64>().unwrap())
+    }).collect::<Vec<(String, String, f64)>>();
 
     Ok(ratings)
+}
+
+/// Reads the records from a dataset stored in a csv file.
+pub fn read_records(path: &str) -> Result<Vec<Record>, ReadError> {
+    read_custom_records(path, ReadOptions::default())
 }

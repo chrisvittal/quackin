@@ -1,55 +1,40 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-extern crate quackin;
-extern crate rustc_serialize;
 
-use quackin::data::{DefaultRecord, Record, read_records};
+extern crate quackin;
+
+use quackin::data::{Record, ReadOptions, read_records, read_custom_records};
+use quackin::data::Field::*;
+
 use quackin::recommender::KnnUserRecommender;
 use quackin::metrics::similarity::cosine;
 
-#[derive(RustcDecodable)]
-pub struct MyRecord {
-    user_id: u32,
-    movie_id: u32,
-    rating: f64,
-    timestamp: u32
-}
-
-impl Record<u32, u32> for MyRecord {
-    fn get_user_id(&self) -> &u32 {
-        &self.user_id
-    }
-    fn get_item_id(&self) -> &u32 {
-        &self.movie_id
-    }
-    fn get_rating(&self) -> f64 {
-        self.rating
-    }
+#[test]
+fn read_default_file_test() {
+    let records = read_records("data/mock.csv").unwrap();
 }
 
 #[test]
-fn read_mock() {
-    let records: Vec<DefaultRecord> = read_records("data/mock.csv", None, false).unwrap();
+fn read_file_with_headers_test() {
+    let options = ReadOptions::custom(vec![UserID, ItemID, Rating], true, ',');
+    let records = read_custom_records("data/mock_headers.csv", options).unwrap();
 }
 
 #[test]
-fn read_mock_with_headers() {
-    let records: Vec<DefaultRecord> = read_records("data/mock_headers.csv", None, true).unwrap();
+fn read_file_with_custom_separator_test() {
+    let options = ReadOptions::custom(vec![UserID, ItemID, Rating], true, '?');
+    let records = read_custom_records("data/mock_separator.csv", options).unwrap();
 }
 
 #[test]
-fn read_mock_with_separator() {
-    let records: Vec<DefaultRecord> = read_records("data/mock_separator.csv", Some('?'), true).unwrap();
+fn read_file_with_more_columns_test() {
+    let options = ReadOptions::custom(vec![UserID, ItemID, Other, Rating], false, ',');
+    let records = read_custom_records("data/mock_custom.csv", options).unwrap();
 }
 
 #[test]
-fn read_mock_with_custom_records() {
-    let records: Vec<MyRecord> = read_records("data/mock_custom.csv", None, false).unwrap();
-}
-
-#[test]
-fn knn_user_recommender() {
-    let records: Vec<DefaultRecord> = read_records("data/mock.csv", None, false).unwrap();
+fn knn_user_recommender_test() {
+    let records = read_records("data/mock.csv").unwrap();
     let recommender = KnnUserRecommender::from_records(&records, cosine, 5);
 
     let some_uir = vec![("user_2", "item_3", 2.5192531497347637),
@@ -67,4 +52,3 @@ fn knn_user_recommender() {
         assert!((pred_rat - rating).abs() < 0.1);
     }
 }
-
