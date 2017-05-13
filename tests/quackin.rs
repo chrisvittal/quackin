@@ -3,7 +3,7 @@
 
 extern crate quackin;
 
-use quackin::data::{Record, ReadOptions, read_records, read_custom_records};
+use quackin::data::{ReadOptions, read_records, read_custom_records};
 use quackin::data::Field::*;
 
 use quackin::recommender::KnnUserRecommender;

@@ -68,7 +68,7 @@ impl ReadOptions {
     /// ```
     /// you will need to use the `ReadOptions::custom` constructor like this
     ///
-    /// ```rust
+    /// ```ignore
     /// use quackin::data::ReadOptions;
     /// use quackin::data::Field::*;
     ///

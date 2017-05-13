@@ -37,7 +37,7 @@
 //! we need to specify if this file has headers or not and which delimiter is
 //! separating the values`.
 //!
-//! ```rust
+//! ```ignore
 //! use quackin::data::{Record, ReadOptions, read_custom_records};
 //! quackin::data::Field::*;
 //!
@@ -51,7 +51,7 @@
 //! Whew, thats a lot of boilerplate for just loading the dataset. But this was
 //! the hardest part of the process. Now lets load the dataset:
 //!
-//! ```rust
+//! ```ignore
 //! let records = read_custom_records("/path/to/movielens", options);
 //! ```
 //! Thats it! now let's build a recommender
@@ -61,7 +61,7 @@
 //! recommender. For each user we will take the 50 nearest users to him,
 //! using a cosine similarity
 //!
-//! ```rust
+//! ```ignore
 //! use quackin::recommender::KnnUserRecommender;
 //! use quackin::metrics::similarity::cosine;
 //!
@@ -71,7 +71,7 @@
 //! user ID `1` gave a rating of 4 to the classic science fiction movie "Tron".
 //! What would our recommender predict about this?
 //!
-//! ```rust
+//! ```ignore
 //! println!("{:?}", recommender.predict(&1, &2105));
 //! // Ok(3.504942020280084)
 //! ```
