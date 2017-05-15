@@ -79,8 +79,7 @@
 //! movies to everyone!
 extern crate csv;
 extern crate sprs;
-extern crate rustc_serialize;
 
-#[macro_use] pub mod data;
+pub mod data;
 pub mod recommender;
 pub mod metrics;
